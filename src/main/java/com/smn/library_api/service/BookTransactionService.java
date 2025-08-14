@@ -3,7 +3,6 @@ package com.smn.library_api.service;
 import com.smn.library_api.model.Book;
 import com.smn.library_api.model.BookTransaction;
 import com.smn.library_api.model.User;
-
 import com.smn.library_api.repository.BookRepository;
 import com.smn.library_api.repository.BookTransactionRepository;
 import com.smn.library_api.repository.UserRepository;
@@ -65,7 +64,7 @@ public class BookTransactionService {
         book.setQuantity(book.getQuantity() + 1);
         bookRepository.save(book);
 
-        // TODO: Calculate fine if overdue, for now we will set it as 0
+        // TODO: Fine calculation skipped as per request
         transaction.setFine(0.0);
 
         return transactionRepository.save(transaction);

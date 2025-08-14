@@ -3,6 +3,7 @@ package com.smn.library_api.controller;
 import com.smn.library_api.model.Book;
 import com.smn.library_api.service.BookService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,13 +18,14 @@ public class BookController {
         this.bookService = bookService;
     }
 
-
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can add books
     public ResponseEntity<Book> addBook(@RequestBody Book book){
         return ResponseEntity.ok(bookService.addBook(book));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can update books
     public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book updatedBook){
         try {
             return ResponseEntity.ok(bookService.updateBook(id, updatedBook));
@@ -33,7 +35,8 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can delete books
+    public ResponseEntity<String> deleteBook(@PathVariable Long id) {
         try {
             Boolean deleted = bookService.deleteBook(id);
             if (deleted) {
@@ -47,11 +50,13 @@ public class BookController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')") // Both can view books
     public ResponseEntity<List<Book>> getAllBooks(){
         return ResponseEntity.ok(bookService.getAllBooks());
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')") // Both can search books
     public ResponseEntity<List<Book>> searchBooks(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String author,
@@ -67,6 +72,7 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')") // Both can view a single book
     public ResponseEntity<Book> getBookById(@PathVariable Long id){
         return bookService.getBookById(id)
                 .map(ResponseEntity::ok)
