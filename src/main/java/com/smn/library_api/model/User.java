@@ -3,6 +3,8 @@ package com.smn.library_api.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.smn.library_api.Enum.Role;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name="users")
@@ -20,7 +22,8 @@ public class User {
     // User.java
 
     @Column(nullable = false)
-    @JsonIgnore
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
     @Enumerated(EnumType.STRING)

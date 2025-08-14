@@ -1,9 +1,11 @@
 package com.smn.library_api.controller;
 
+import com.smn.library_api.dto.LoginRequest; // Assuming DTO is now available
 import com.smn.library_api.model.User;
 import com.smn.library_api.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,10 +22,14 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@Valid @RequestBody User user) {
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            return ResponseEntity.badRequest().body("Password cannot be null or empty");
+        }
         User savedUser = userService.registerUser(user);
         return ResponseEntity.ok(savedUser);
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
@@ -31,20 +37,14 @@ public class UserController {
         return ResponseEntity.ok(token);
     }
 
-
-
-    //test
-    @GetMapping("/hello")
-    public String getSessionId(HttpServletRequest request) {
-        return "Hello, Welcome " + request.getSession().getId();
-    }
-
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can view all users
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')") // Both can view a user (with checks)
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
@@ -52,6 +52,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')") // Both can update own profile (add logic for ownership if needed)
     public ResponseEntity<User> updateUserProfile(@PathVariable Long id, @RequestBody User updatedUser) {
         Optional<User> existingUser = userService.getUserById(id);
 
@@ -64,6 +65,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can delete users
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         try {
             Boolean deleted = userService.deleteUser(id);
@@ -76,5 +78,4 @@ public class UserController {
             return ResponseEntity.status(500).body("Error deleting user: " + e.getMessage());
         }
     }
-
 }

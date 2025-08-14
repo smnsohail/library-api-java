@@ -2,7 +2,10 @@ package com.smn.library_api.service;
 
 import com.smn.library_api.repository.UserRepository;
 import com.smn.library_api.model.User;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import com.smn.library_api.security.jwt.JwtUtil;
+import com.smn.library_api.security.CustomUserDetailsService;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder; // Updated import (interface)
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,31 +15,34 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final JWTUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder; // Changed to interface
+    private final JwtUtil jwtUtil;
+    private final CustomUserDetailsService userDetailsService;
 
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JWTUtil jwtUtil) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.passwordEncoder = passwordEncoder; // Now uses the interface
         this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
     }
-
 
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
-    public String login(String email, String password){
-        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("Invalid email or password"));
+    public String login(String email, String password) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-        if(!passwordEncoder.matches(password, user.getPassword())){
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
 
-        return jwtUtil.generateToken(user.getEmail());
+        return jwtUtil.generateToken(userDetails);
     }
 
+    // Rest of the methods remain unchanged...
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -59,9 +65,8 @@ public class UserService {
     public Boolean deleteUser(Long id) {
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
-            return true; // deleted successfully
+            return true;
         }
-        return false; // user not found
+        return false;
     }
-
 }

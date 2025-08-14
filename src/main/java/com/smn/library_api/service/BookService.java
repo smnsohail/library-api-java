@@ -1,7 +1,7 @@
 package com.smn.library_api.service;
 
-import com.smn.library_api.repository.BookRepository;
 import com.smn.library_api.model.Book;
+import com.smn.library_api.repository.BookRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,15 +11,15 @@ import java.util.Optional;
 public class BookService {
     private final BookRepository bookRepository;
 
-    public BookService(BookRepository bookRepository){
+    public BookService(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
     }
 
-    public Book addBook(Book book){
+    public Book addBook(Book book) {
         return bookRepository.save(book);
     }
 
-    public Book updateBook(Long id, Book updatedBook){
+    public Book updateBook(Long id, Book updatedBook) {
         return bookRepository.findById(id)
                 .map(book -> {
                     book.setTitle(updatedBook.getTitle());
@@ -38,22 +38,23 @@ public class BookService {
         return false;
     }
 
-
-    public List<Book> getAllBooks(){
+    public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
 
-    public Optional<Book> getBookById(Long id){
+    public Optional<Book> getBookById(Long id) {
         return bookRepository.findById(id);
     }
 
-    public List<Book> searchByTitle(String title){
+    public List<Book> searchByTitle(String title) {
         return bookRepository.findByTitleContainingIgnoreCase(title);
     }
-    public List<Book> searchByAuthor(String author){
+
+    public List<Book> searchByAuthor(String author) {
         return bookRepository.findByAuthorContainingIgnoreCase(author);
     }
-    public List<Book> searchByCategory(String category){
+
+    public List<Book> searchByCategory(String category) {
         return bookRepository.findByCategoryContainingIgnoreCase(category);
     }
 }
